@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../database/db_helper.dart';
-import '../models/inventory_item_model.dart';
+import 'package:hive_flutter/adapters.dart';
+import '../models/inventory_item.dart';
+import 'package:hive/hive.dart';
 
 class InventoryPage extends StatefulWidget {
   @override
@@ -8,124 +9,114 @@ class InventoryPage extends StatefulWidget {
 }
 
 class _InventoryPageState extends State<InventoryPage> {
-  final DBHelper _dbHelper = DBHelper();
-  List<InventoryItem> _inventory = [];
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _unitPriceController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final Box<InventoryItem> _inventoryBox = Hive.box<InventoryItem>('inventory');
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchInventory();
+  void _addItem() {
+    final name = _nameController.text.trim();
+    final quantity = int.tryParse(_quantityController.text) ?? 0;
+    final unitPrice = double.tryParse(_unitPriceController.text) ?? 0.0;
+    final description = _descriptionController.text.trim();
+
+    if (name.isNotEmpty && quantity > 0 && unitPrice > 0) {
+      final newItem = InventoryItem(
+        name: name,
+        quantity: quantity,
+        unitPrice: unitPrice,
+        description: description,
+      );
+      _inventoryBox.add(newItem);
+
+      _nameController.clear();
+      _quantityController.clear();
+      _unitPriceController.clear();
+      _descriptionController.clear();
+
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Item "$name" added to inventory!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields correctly.')),
+      );
+    }
   }
 
-  Future<void> _fetchInventory() async {
-    final data = await _dbHelper.getData('inventory');
-    setState(() {
-      _inventory = data.map((item) => InventoryItem.fromMap(item)).toList();
-    });
-  }
-
-  Future<void> _addItem(InventoryItem item) async {
-    await _dbHelper.insert('inventory', item.toMap());
-    _fetchInventory();
-  }
-
-  Future<void> _updateItem(InventoryItem item) async {
-    await _dbHelper.update('inventory', item.toMap(), item.id!);
-    _fetchInventory();
-  }
-
-  Future<void> _deleteItem(int id) async {
-    await _dbHelper.delete('inventory', id);
-    _fetchInventory();
-  }
-
-  void _showForm({InventoryItem? item}) {
-    final _nameController = TextEditingController(text: item?.name ?? '');
-    final _quantityController = TextEditingController(
-        text: item != null ? item.quantity.toString() : '');
-    final _priceController = TextEditingController(
-        text: item != null ? item.price.toString() : '');
-
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Item Name'),
-            ),
-            TextField(
-              controller: _quantityController,
-              decoration: InputDecoration(labelText: 'Quantity'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _priceController,
-              decoration: InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                final newItem = InventoryItem(
-                  id: item?.id,
-                  name: _nameController.text,
-                  quantity: int.tryParse(_quantityController.text) ?? 0,
-                  price: double.tryParse(_priceController.text) ?? 0.0,
-                );
-                if (item == null) {
-                  _addItem(newItem);
-                } else {
-                  _updateItem(newItem);
-                }
-                Navigator.pop(context);
-              },
-              child: Text(item == null ? 'Add Item' : 'Update Item'),
-            )
-          ],
-        ),
-      ),
+  void _deleteItem(int index) {
+    _inventoryBox.deleteAt(index);
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Item deleted from inventory.')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Inventory'),
-      ),
-      body: _inventory.isEmpty
-          ? Center(child: Text('No items in inventory'))
-          : ListView.builder(
-        itemCount: _inventory.length,
-        itemBuilder: (context, index) {
-          final item = _inventory[index];
-          return ListTile(
-            title: Text(item.name),
-            subtitle:
-            Text('Quantity: ${item.quantity}, Price: \$${item.price}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () => _showForm(item: item),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () => _deleteItem(item.id!),
-                ),
-              ],
+      appBar: AppBar(title: const Text('Manage Inventory')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Item Name'),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () => _showForm(),
+            TextField(
+              controller: _quantityController,
+              decoration: const InputDecoration(labelText: 'Quantity'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _unitPriceController,
+              decoration: const InputDecoration(labelText: 'Unit Price'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addItem,
+              child: const Text('Add Item'),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ValueListenableBuilder(
+                valueListenable: _inventoryBox.listenable(),
+                builder: (context, Box<InventoryItem> box, _) {
+                  if (box.isEmpty) {
+                    return const Center(child: Text('No items in inventory'));
+                  }
+                  return ListView.builder(
+                    itemCount: box.length,
+                    itemBuilder: (context, index) {
+                      final item = box.getAt(index);
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: ListTile(
+                          title: Text(item!.name),
+                          subtitle: Text(
+                            'Price: ${item.unitPrice.toStringAsFixed(2)} | Qty: ${item.quantity}\nDescription: ${item.description}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteItem(index),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

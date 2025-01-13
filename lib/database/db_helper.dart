@@ -38,6 +38,16 @@ class DBHelper {
         price REAL NOT NULL
       )
     ''');
+
+    // Create invoice table
+    await db.execute('''
+      CREATE TABLE invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_name TEXT NOT NULL,
+        date TEXT NOT NULL,
+        total REAL NOT NULL
+      )
+    ''');
   }
 
   // Insert a new inventory item

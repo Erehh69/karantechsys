@@ -5,13 +5,21 @@ part 'inventory_item.g.dart';
 @HiveType(typeId: 0)
 class InventoryItem extends HiveObject {
   @HiveField(0)
-  String name;
+  late String name;
 
   @HiveField(1)
-  int quantity;
+  late int quantity;
 
   @HiveField(2)
-  double price;
+  late double unitPrice;
 
-  InventoryItem({required this.name, required this.quantity, required this.price});
+  @HiveField(3)
+  late String description; // Optional field for item details
+
+  InventoryItem({
+    required this.name,
+    required this.quantity,
+    required this.unitPrice,
+    this.description = '',
+  });
 }
