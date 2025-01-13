@@ -25,13 +25,13 @@ class InvoiceAdapter extends TypeAdapter<Invoice> {
       accountNumber: fields[5] as String,
       date: fields[6] as DateTime,
       items: (fields[7] as List).cast<InvoiceItem>(),
-    );
+    )..id = fields[8] as String;
   }
 
   @override
   void write(BinaryWriter writer, Invoice obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.companyName)
       ..writeByte(1)
@@ -47,7 +47,9 @@ class InvoiceAdapter extends TypeAdapter<Invoice> {
       ..writeByte(6)
       ..write(obj.date)
       ..writeByte(7)
-      ..write(obj.items);
+      ..write(obj.items)
+      ..writeByte(8)
+      ..write(obj.id);
   }
 
   @override

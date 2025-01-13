@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/invoice_model.dart';
 import 'create_invoice_page.dart'; // Import CreateInvoicePage
+import 'pdf_generator.dart'; // Import the PDF generator
 
 class InvoicePage extends StatelessWidget {
   const InvoicePage({super.key});
@@ -26,10 +28,12 @@ class InvoicePage extends StatelessWidget {
               return ListTile(
                 title: Text(invoice?.companyName ?? 'Unknown'),
                 subtitle: Text(
-                  'Total: \RM${invoice?.items.fold(0.0, (double sum, item) => sum + item.total).toStringAsFixed(2)}',
+                  'Total: \RM${invoice?.items.fold(0.0, (sum, item) => sum + item.total).toStringAsFixed(2)}',
                 ),
-                onTap: () {
-                  // Action on tapping an invoice
+                onTap: () async {
+                  if (invoice != null) {
+                    await generateInvoicePdf(invoice); // Use the shared PDF generator
+                  }
                 },
               );
             },
@@ -38,7 +42,6 @@ class InvoicePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to the CreateInvoicePage
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const CreateInvoicePage()),

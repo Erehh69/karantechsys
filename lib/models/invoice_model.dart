@@ -29,6 +29,9 @@ class Invoice extends HiveObject {
   @HiveField(7)
   late List<InvoiceItem> items;
 
+  @HiveField(8)
+  late String id; // Unique identifier
+
   Invoice({
     required this.companyName,
     required this.companyAddress,
@@ -38,8 +41,9 @@ class Invoice extends HiveObject {
     required this.accountNumber,
     required this.date,
     required this.items,
-  });
+  }) : id = DateTime.now().millisecondsSinceEpoch.toString(); // Auto-generate ID
 }
+
 
 @HiveType(typeId: 2)
 class InvoiceItem extends HiveObject {
