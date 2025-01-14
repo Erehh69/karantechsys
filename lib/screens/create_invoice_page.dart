@@ -101,7 +101,7 @@ class _CreateInvoicePageState extends State<CreateInvoicePage> {
               const Divider(),
               TextFormField(
                 controller: _payToController,
-                decoration: const InputDecoration(labelText: 'Pay To'),
+                decoration: const InputDecoration(labelText: 'Bill To'),
                 validator: (value) => value!.isEmpty ? 'Required' : null,
               ),
               TextFormField(
