@@ -32,7 +32,7 @@ class ERPApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ERP App',
+      title: 'KARAN SYS',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const HomePage(),
     );
@@ -49,9 +49,9 @@ class HomePage extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black, Colors.yellow], // Grey to Black gradient
-            begin: Alignment.centerLeft, // Start gradient from left
-            end: Alignment.centerRight, // End gradient on the right
+            colors: [Colors.grey, Colors.black], // Grey to Black gradient
+            begin: Alignment.topCenter, // Start gradient from left
+            end: Alignment.bottomCenter, // End gradient on the right
           ),
         ),
         child: Center(
@@ -62,11 +62,11 @@ class HomePage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Image.asset(
-                  'lib/assets/logo.png', // Ensure the image exists in assets folder
-                  height: 230,
+                  'lib/assets/KARAN.png', // Ensure the image exists in assets folder
+                  height: 400,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 50),
               // Buttons
               ElevatedButton(
                 onPressed: () {
